@@ -1,5 +1,6 @@
 # netTools/Packet.py
 # This is a Python module for creating and sending TCP packets using Scapy.
+# This project is under the GNU General Public License v3.0 (GPL-3.0).
 
 from scapy.all import IP, TCP, send, Raw, sr1, get_if_addr, conf
 from ipaddress import ip_address

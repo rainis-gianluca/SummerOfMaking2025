@@ -1,5 +1,6 @@
 # netTools/graphics.py
 # This module contains the graphical user interface (GUI) for the NetTools application
+# This project is under the GNU General Public License v3.0 (GPL-3.0).
 
 from tkinter import *
 from Packet import *
@@ -62,7 +63,20 @@ def menuGestor(functionName): # Manage the menu selection and update the graphic
         destroyAllGraphics()
         global mainFrame
 
-        aboutLabel = Label(mainFrame, text="NetTools - Pro Network Analyzer\nSummer of Making 2025 Edition\n\nAuthor: Gianluca Rainis ( __grdev on summer.hackclub.com )\n\nThis project is free and Open Source Software (FOSS).\n\nSource code: \n\nEDUCATIONAL PURPOSES ONLY\n\nGood Hack!", bg="black", fg="#16c60c", font=("Liberation Sans", 13))
+        aboutLabel = Label(mainFrame, text='''
+NetTools - Pro Network Analyzer
+Summer of Making 2025 Edition
+                           
+Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
+                           
+This project is under the GNU General Public License v3.0 (GPL-3.0).
+                           
+GitHub: https://github.com/rainis-gianluca/SummerOfMaking2025.git
+                         
+EDUCATIONAL PURPOSES ONLY
+                           
+Good Hack!''', bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+        
         aboutLabel.pack(pady=20)
     else:
         pass

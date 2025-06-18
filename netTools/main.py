@@ -1,7 +1,7 @@
 # netTools/main.py
 # This is the main entry point for the NetTools application, which initializes the GUI and sets up the menu.
 # This project is a network analysis tool that provides various functionalities like packet generation and ARP analysis.
-# This project is not under any particular type of license, but it is free and Open Source Software (FOSS).
+# This project is under the GNU General Public License v3.0 (GPL-3.0).
 # EDUCATIONAL PURPOSES ONLY
 # Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
 
