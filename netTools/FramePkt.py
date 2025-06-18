@@ -110,10 +110,10 @@ class FramePkt:
                     
                 scanned_ips.add(str(ip))
 
-        if log_callback:
+        if log_callback and arp_callback: # log_callback to print logs on a Text label, arp_callback to print the arp response on a Text label. You can use print() instead.
             log_callback("Frame sending completed.")
         else:
-            raise Exception("Frame sending completed without log callback.")
+            raise Exception("Frame sending completed without log/arp callback.")
 
     # GETTERS AND SETTERS
     def get_networkIp(self):

@@ -52,25 +52,28 @@ class Packet():
         except Exception:
             return False
         
-    def connect(self):
+    def connect(self, log_callback=None):
         if self.destinationIp is None or self.destinationPort is None or self.sourceIp is None or self.sourcePort is None:
             raise Exception("Error: Missing required parameters.")
+        
+        if log_callback is None: # log_callback to print logs on a Text label. You can use print() instead.
+            raise Exception("Error: log_callback is None. Please provide a valid log callback function.")
 
         #SYN, SYN-ACK, ACK
-        print("Sending SYN...")
+        log_callback("Sending SYN...")
         try:
             syn = IP(src=self.sourceIp, dst=self.destinationIp)/TCP(sport=self.sourcePort, dport=self.destinationPort, flags="S", seq=1000)
             self.syn_ack = sr1(syn, timeout=2)
 
             if self.sourceIp == get_if_addr(conf.iface).strip():
                 if self.syn_ack is None or self.syn_ack[TCP].flags != "SA":
-                    print("Connection failed.")
+                    log_callback("Connection failed.")
                     raise Exception()
                 else:
-                    print("Recived SYN-ACK")
+                    log_callback("Recived SYN-ACK")
             else:
-                print("Warning: The source IP is not the same as the interface IP. This may cause issues with the connection.")
-                print("Sended SYN, the destination may not respond correctly.")
+                log_callback("Warning: The source IP is not the same as the interface IP. This may cause issues with the connection.")
+                log_callback("Sended SYN, the destination may not respond correctly.")
         except Exception as e:
             raise Exception("Error: "+e.__str__())
         
@@ -79,20 +82,32 @@ class Packet():
                 seq_ack = self.syn_ack.seq+1
                 ack = IP(src=self.sourceIp, dst=self.destinationIp) / TCP(sport=self.sourcePort, dport=self.destinationPort, flags="A", seq=syn.seq+1, ack=self.syn_ack.seq+1)
 
-                print("Sending ACK...")
+                log_callback("Sending ACK...")
                 send(ack)
             except Exception as e:
-                print("Connection failed.")
+                log_callback("Connection failed.")
                 raise Exception("Error: "+e.__str__())
 
-            print("Connected.")
+            log_callback("Connected.")
         else:
-            print("Warning: The source IP is not the same as the interface IP. This may cause issues with the connection.")
-            print("Try to send the packet anyway.")
+            log_callback("Warning: The source IP is not the same as the interface IP. This may cause issues with the connection.")
+            log_callback("Try to send the packet anyway.")
 
-    def prepare_packet(self):
-        if self.destinationIp is None or self.destinationPort is None or self.sourceIp is None or self.sourcePort is None or self.ttl is None or self.syn_ack is None:
-            raise Exception("Error: Missing required parameters.")
+    def prepare_packet(self, log_callback=None):
+        try:
+            if self.destinationIp is None or self.destinationPort is None or self.sourceIp is None or self.sourcePort is None or self.ttl is None or self.syn_ack is None:
+                raise Exception("Error: Missing required parameters.")
+        except Exception as e:
+            log_callback("Error: "+e.__str__())
+
+        if self.syn_ack is None:
+            log_callback("Error: SYN-ACK packet is None. Please connect first | If the source ip is different from your interface ip, ignore this error.")
+            
+            class TempClassForSynAck:
+                seq = 0
+                ack = 0
+            
+            self.syn_ack = TempClassForSynAck()
 
         try:
             self.ip = IP()
@@ -115,31 +130,34 @@ class Packet():
             else:
                 self.tcp.ack = 1
         except Exception as e:
-            raise Exception("Error: "+e.__str__())
+            log_callback("Error: "+e.__str__())
 
         try:
             self.data = Raw(load=self.message)
         except Exception as e:
-            raise Exception("Error: "+e.__str__())
+            log_callback("Error: "+e.__str__())
 
         try:
             self.pkt = self.ip / self.tcp / self.data
         except Exception as e:
-            raise Exception("Error: "+e.__str__())
+            log_callback("Error: "+e.__str__())
         
-    def send_packets(self):
+    def send_packets(self, log_callback=None, timeoutForRespoonse=2):
         if self.destinationIp is None or self.destinationPort is None or self.numberPackets is None or self.payload_len is None or self.pkt is None or self.ip is None or self.tcp is None or self.data is None:
             raise Exception("Error: Missing required parameters.")
 
         tempPacketSended = 0
 
+        if log_callback is None: # log_callback to print logs on a Text label. You can use print() instead.
+            raise Exception("Error: log_callback is None. Please provide a valid log callback function.")
+
         try:
             while self.numberPackets != 0:
-                resp = sr1(self.pkt, timeout=2, verbose=0)
+                resp = sr1(self.pkt, timeout=timeoutForRespoonse, verbose=0)
                 self.numberPackets -= 1
                 tempPacketSended += 1
-                print("Sent packet "+str(tempPacketSended)+" to "+str(self.destinationIp)+":"+str(self.destinationPort))
-                print("Response: "+str(resp))
+                log_callback("Sent packet "+str(tempPacketSended)+" to "+str(self.destinationIp)+":"+str(self.destinationPort))
+                log_callback("Response: "+str(resp))
 
                 self.tcp.seq += self.payload_len
                 self.pkt = self.ip / self.tcp / self.data

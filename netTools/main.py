@@ -17,6 +17,8 @@ window.configure(background="black")
 menu = Menu(window)
 menu.add_command(label="Packet Generator", command=lambda: menuGestor("Packet Generator"))
 menu.add_command(label="ARP Analyzer", command=lambda: menuGestor("ARP Analyzer"))
+menu.add_command(label="DoS as DDoS", command=lambda: menuGestor("DoS as DDoS"))
+menu.add_separator()
 menu.add_command(label="About", command=lambda: menuGestor("About"))
 window.config(menu=menu)
 
