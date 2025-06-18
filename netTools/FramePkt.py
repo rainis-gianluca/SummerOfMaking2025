@@ -4,7 +4,7 @@
 
 from scapy.all import Ether, ARP, srp
 from ipaddress import ip_address
-from socket import gethostbyname
+from socket import gethostbyname, gethostbyaddr
 import ipaddress
 
 class FramePkt:
@@ -40,6 +40,13 @@ class FramePkt:
             return True
         except Exception:
             return False
+        
+    @staticmethod
+    def get_hostname(ip):
+        try:
+            return gethostbyaddr(ip)[0]
+        except Exception:
+            return "Unknown Hostname"
 
     def prepare_frame(self):
         try:
@@ -98,10 +105,10 @@ class FramePkt:
                     if answered:
                         for sent, received in answered:
                             if arp_callback:
-                                arp_callback(f"IP: {received.psrc} | MAC: {received.hwsrc}")
+                                arp_callback(f"IP: {received.psrc} | MAC: {received.hwsrc} | DNS: {self.get_hostname(self.get_destinationIp())}")
                     else:
                         if arp_callback:
-                            arp_callback(f"IP: {self.get_destinationIp()} | MAC: NULL")
+                            arp_callback(f"IP: {self.get_destinationIp()} | MAC: NULL | DNS: {self.get_hostname(self.get_destinationIp())}")
                 except Exception as e:
                     if log_callback:
                         log_callback(f"Error sending frame: {e}")

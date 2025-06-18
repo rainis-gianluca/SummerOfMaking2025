@@ -277,11 +277,13 @@ def createARPAnalyzerGraphics(): # Create the ARP Analyzer graphics
     def writeLog(message):
         logText.config(state=NORMAL)
         logText.insert(END, message + "\n")
+        logText.see(END)
         logText.config(state=DISABLED)
 
     def writeArp(message):
         arpText.config(state=NORMAL)
         arpText.insert(END, message + "\n")
+        arpText.see(END)
         arpText.config(state=DISABLED)
 
     def startSendingProcess():
