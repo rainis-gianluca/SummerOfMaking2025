@@ -1,0 +1,26 @@
+# netTools/main.py
+# This is the main entry point for the NetTools application, which initializes the GUI and sets up the menu.
+# This project is a network analysis tool that provides various functionalities like packet generation and ARP analysis.
+# This project is not under any particular type of license, but it is free and Open Source Software (FOSS).
+# EDUCATIONAL PURPOSES ONLY
+# Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
+
+from graphics import createGraphics, menuGestor
+from tkinter import *
+
+window = Tk()
+window.title("NetTools - Pro Network analyzer - Summer of Making 2025 Edition")
+window.geometry("500x600")
+window.resizable(False, False)
+window.configure(background="black")
+
+menu = Menu(window)
+menu.add_command(label="Packet Generator", command=lambda: menuGestor("Packet Generator"))
+menu.add_command(label="ARP Analyzer", command=lambda: menuGestor("ARP Analyzer"))
+menu.add_command(label="About", command=lambda: menuGestor("About"))
+window.config(menu=menu)
+
+createGraphics(window)
+
+if __name__ == "__main__": #Start the program
+    window.mainloop()
