@@ -15,7 +15,7 @@ POSITIONIMAGES = str(Path(__file__).parent.absolute()) + "\\images\\"
 
 window = None
 mainFrame = None
-endDDoS = False
+endCurrentProcess = False
 
 def createGraphics(windowPassed): # Initialize the graphics for the NetTools application
     global window, mainFrame, titleLabel, logoLabel
@@ -54,6 +54,10 @@ def menuGestor(functionName): # Manage the menu selection and update the graphic
         destroyAllGraphics()
 
         createDoSGraphics()
+    elif functionName == "Port Scan":
+        destroyAllGraphics()
+
+        createPortScanGraphics()
     elif functionName == "About":
         destroyAllGraphics()
         global mainFrame
@@ -61,19 +65,37 @@ def menuGestor(functionName): # Manage the menu selection and update the graphic
         mainFrame = Frame(window, bg="black")
         mainFrame.pack(fill=BOTH, expand=True)
 
-        aboutLabel = Label(mainFrame, text='''
+        aboutLabel = Label(mainFrame, text='''========================= Info =========================
 NetTools - Pro Network Analyzer
 Summer of Making 2025 Edition
-                           
+
 Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
-                           
+
 This project is under the GNU General Public License v3.0 (GPL-3.0).
-                           
+
 GitHub: https://github.com/rainis-gianluca/SummerOfMaking2025.git
-                         
+
 EDUCATIONAL PURPOSES ONLY
+
+Good Hack!
+
+========================= Tools =========================
                            
-Good Hack!''', bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+Packet Generator:
+Create a custom packet and send it.
+
+ARP Analyzer:
+Associate each used IP address
+in your network with the device's MAC address.
+
+DoS as DDoS:
+Simulate a DDoS attack by sending a large number of packets
+(that have a random public source IP) to a specific IP address.
+
+Port Scan:
+Scan a range of ports on a specific
+IP address to check which ports are open.
+''', bg="black", fg="#16c60c", font=("Liberation Sans", 12))
         
         aboutLabel.pack(pady=20)
     else:
@@ -437,15 +459,15 @@ Payload Length: {packet.get_payload_length()}
         return
     
     def stopDDoSProcess(stop):
-        global endDDoS
+        global endCurrentProcess
 
         if stop:
-            endDDoS = True
+            endCurrentProcess = True
 
     def startSendingProcess():
-        global endDDoS
+        global endCurrentProcess
         
-        while not endDDoS:
+        while not endCurrentProcess:
             try:
                 try:
                     setNewPacketData()
@@ -471,3 +493,126 @@ Payload Length: {packet.get_payload_length()}
                 return
             
         writeLog("\nProcess completed.")
+
+def createPortScanGraphics():
+    global mainFrame
+
+    COLUMN1PADX = 17
+    COLUMN2PADX = 80
+    ROWPADY = 5
+
+    mainFrame = Frame(window, bg="black")
+    mainFrame.pack(fill=BOTH, expand=True)
+
+    destinationIpLabel = Label(mainFrame, text="Destination IP:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    destinationIpLabel.grid(pady=ROWPADY+10, padx=COLUMN1PADX, column=0, row=0, sticky=N)
+    destinationIpEntry = Entry(mainFrame, bg="white", fg="black", font=("Liberation Sans", 12))
+    destinationIpEntry.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=0, sticky=W)
+
+    startPortLabel = Label(mainFrame, text="First Port:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    startPortLabel.grid(pady=ROWPADY, padx=COLUMN1PADX, column=0, row=1, sticky=N)
+    startPortEntry = Entry(mainFrame, bg="white", fg="black", font=("Liberation Sans", 12))
+    startPortEntry.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=1, sticky=W)
+
+    endPortLabel = Label(mainFrame, text="Last Port:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    endPortLabel.grid(pady=ROWPADY, padx=COLUMN1PADX, column=0, row=2, sticky=N)
+    endPortEntry = Entry(mainFrame, bg="white", fg="black", font=("Liberation Sans", 12))
+    endPortEntry.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=2, sticky=W)
+
+    messageLabel = Label(mainFrame, text="Log:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    messageLabel.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=3, sticky=N, columnspan=2)
+    logText = Text(mainFrame, bg="black", fg="#16c60c", font=("Liberation Sans", 12), height=6, width=50, state=DISABLED)
+    logText.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=4, sticky=W+E, columnspan=2)
+
+    logScrollbar = Scrollbar(mainFrame, command=logText.yview)
+    logScrollbar.grid(row=0, column=2, sticky='ns', pady=ROWPADY)
+
+    portLabel = Label(mainFrame, text="Current Data:", bg="black", fg="#16c60c", font=("Liberation Sans", 12))
+    portLabel.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=5, sticky=N, columnspan=2)
+    portDataText = Text(mainFrame, bg="black", fg="#16c60c", font=("Liberation Sans", 12), height=9, width=23, state=DISABLED)
+    portDataText.grid(pady=ROWPADY, padx=(COLUMN1PADX, COLUMN2PADX), column=0, row=6, sticky=W+E, columnspan=2)
+
+    portDataScrollbar = Scrollbar(mainFrame, command=portDataText.yview)
+    portDataScrollbar.grid(row=0, column=2, sticky='ns', pady=ROWPADY)
+
+    try:
+        startButton = Button(mainFrame, text="Start", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: threading.Thread(target=startScanningProcess, args=()).start())
+        startButton.grid(pady=ROWPADY, padx=COLUMN1PADX, column=0, row=7, sticky=N)
+        endButton = Button(mainFrame, text="END", bg="#16c60c", fg="black", font=("Liberation Sans", 12), width=19, command=lambda: stopScanningProcess(True))
+        endButton.grid(pady=ROWPADY, padx=COLUMN2PADX, column=1, row=7, sticky=W)
+    except Exception as e:
+        writeLog("Error: " + str(e))
+
+    # Internal use only functions
+    def writeLog(message):
+        logText.config(state=NORMAL)
+        logText.insert(END, message + "\n")
+        logText.see(END)
+        logText.config(state=DISABLED)
+
+    def writeCurrentData(message):
+        portDataText.config(state=NORMAL)
+        portDataText.insert(END, message + "\n")
+        portDataText.see(END)
+        portDataText.config(state=DISABLED)
+
+    def startScanningProcess():
+        global endCurrentProcess
+
+        endCurrentProcess = False
+        destinationIp = str(destinationIpEntry.get())
+        startPort = str(startPortEntry.get())
+        endPort = str(endPortEntry.get())
+
+        try:
+            startPort = int(startPort)
+        except ValueError:
+            writeLog("Invalid start port. Please enter a valid integer.")
+            return
+        
+        try:
+            endPort = int(endPort)
+        except ValueError:
+            writeLog("Invalid end port. Please enter a valid integer.")
+            return
+        
+        if startPort < 0 or endPort < 0 or startPort > 65535 or endPort > 65535:
+            writeLog("Port numbers must be between 0 and 65535.")
+            return
+
+        if Packet.is_valid_ip(destinationIp) or Packet.is_valid_DNS(destinationIp):
+            if Packet.is_valid_DNS(destinationIp):
+                destinationIp = socket.gethostbyname(destinationIp)
+
+            try:
+                for port in range(startPort, endPort + 1):
+                    try:
+                        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                            s.settimeout(0.1)
+                            result = s.connect_ex((destinationIp, port))
+
+                            if result == 0:
+                                writeCurrentData(f"Port {destinationIp}:{port} is open.")
+                            else:
+                                writeCurrentData(f"Port {destinationIp}:{port} is closed.")
+                            s.close()
+
+                        if endCurrentProcess:
+                            writeLog("Port scanning stopped by user.")
+                            return
+                    except Exception as e:
+                        writeLog(f"Error scanning port {destinationIp}:{port}: {str(e)}")
+
+                writeLog("Port scanning completed.")
+            except Exception as e:
+                writeLog("Error: " + str(e))
+                return
+        else:
+            writeLog("Invalid IP address.")
+            return
+
+    def stopScanningProcess(stop):
+        global endCurrentProcess
+
+        if stop:
+            endCurrentProcess = True
