@@ -1,7 +1,6 @@
 # pcDocTerm/main.py
 # This project is a terminal PC management tool
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
-# EDUCATIONAL PURPOSES ONLY
 # Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
 
 from tkinter import *
@@ -21,7 +20,7 @@ createGraphics(window)
 
 def update():
     updateGraphics()
-    window.after(100, update)  # Update every second
+    window.after(100, update)  # Update in loop
 
 if __name__ == "__main__": #Start the program
     update()
