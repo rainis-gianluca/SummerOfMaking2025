@@ -4,7 +4,7 @@
 # Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
 
 from tkinter import *
-from graphics import createGraphics, updateGraphics
+from graphics import createGraphics, updateGraphics, start_data_thread
 from pathlib import Path
 
 POSITIONIMAGES = str(Path(__file__).parent.absolute()) + "\\images\\"
@@ -12,16 +12,22 @@ POSITIONIMAGES = str(Path(__file__).parent.absolute()) + "\\images\\"
 window = Tk()
 window.title("pcDocTerm - System information - Summer of Making 2025 Edition")
 window.geometry("810x400")
+window.minsize(400, 250)
 window.configure(background="black")
 window.resizable(True, True)  # Allow resizing
 window.iconbitmap(POSITIONIMAGES+"terminal.ico")  # Set the icon for the window
 
 createGraphics(window)
 
-def update():
+try:
+    start_data_thread()
+except Exception as e:
+    print(f"Error in data thread: {e}\n")
+
+try:
     updateGraphics()
-    window.after(100, update)  # Update in loop
+except Exception as e:
+    print(f"Error updating graphics: {e}\n")
 
 if __name__ == "__main__": #Start the program
-    update()
     window.mainloop()

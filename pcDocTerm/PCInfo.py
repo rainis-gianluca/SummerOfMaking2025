@@ -13,7 +13,7 @@ class PCInfo:
             "OS Version": platform.version(),
             "Architecture": platform.architecture()[0],
             "Processor": platform.processor(),
-            "CPU Cores": psutil.cpu_count(logical=True),
+            "CPU Cores": str(psutil.cpu_count(logical=True)),
             "Memory": self.get_memory_info(),
             "Disk": self.get_disk_info()
         }
@@ -30,16 +30,20 @@ class PCInfo:
     # Main methods to get system information
     
     def get_current_disk_usage(self): # Returns the current disk usage in GB
-        disk = psutil.disk_usage()
+        disk = psutil.disk_usage('/')
         return f"{disk.used / (1024 ** 3):.2f} GB"
     
-    def get_current_disk_usage_percent(self): # Returns the current disk usage in GB
-        disk = psutil.virtual_memory()
+    def get_current_disk_usage_percent(self): # Returns the current disk usage in %
+        disk = psutil.disk_usage('/')
         return f"{disk.percent}%"
     
     def get_current_disk_avable(self): # Returns the current disk avable in GB
-        disk = psutil.virtual_memory()
-        return f"{disk.available / (1024 ** 3):.2f} GB"
+        disk = psutil.disk_usage('/')
+        return f"{disk.free / (1024 ** 3):.2f} GB"
+    
+    def get_current_disk_avable_percent(self): # Returns the current disk avable in %
+        disk = psutil.disk_usage('/')
+        return f"{100.0-disk.percent}%"
     
     def get_current_disk_read(self): # Returns the current disk read time
         return str(psutil.disk_io_counters().read_time)+"ms"
@@ -56,17 +60,14 @@ class PCInfo:
 
         return partition_info
     
-    def get_current_cpu_usage(self): # Returns the current CPU usage as a list of percentages for each core
+    def get_current_cpu_usage(self): # Returns the current CPU usage as a list of percentages (float) for each core
         cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
-
-        for i in cpu_usage:
-            i = str(i)+"%"
 
         return cpu_usage
     
     def get_current_cpu_freq(self): # Returns the current CPU frequency in MHz as a list
-        cpu = psutil.cpu_freq()
-
+        cpu = psutil.cpu_freq(percpu=True)
+        
         cpuFreq = []
 
         for i in cpu:
@@ -78,13 +79,17 @@ class PCInfo:
         mem = psutil.virtual_memory()
         return f"{mem.used / (1024 ** 3):.2f} GB"
     
-    def get_current_memory_usage_percent(self): # Returns the current memory usage in GB
+    def get_current_memory_usage_percent(self): # Returns the current memory usage in %
         mem = psutil.virtual_memory()
         return f"{mem.percent}%"
     
     def get_current_memory_avable(self): # Returns the current memory avable in GB
         mem = psutil.virtual_memory()
         return f"{mem.available / (1024 ** 3):.2f} GB"
+    
+    def get_current_memory_avable_percent(self): # Returns the current memory avable in %
+        mem = psutil.virtual_memory()
+        return f"{100.0-mem.percent}%"
     
     def get_battery_info(self): # Returns the battery information if available (Battery Percentage, Power Plugged, Time Left)
         if not psutil.sensors_battery():
@@ -97,3 +102,5 @@ class PCInfo:
                 "Power Plugged": battery.power_plugged,
                 "Time Left": f"{battery.secsleft // 60} minutes" if battery.secsleft != psutil.POWER_TIME_UNLIMITED else "Charging"
             }
+
+            return battery_info
