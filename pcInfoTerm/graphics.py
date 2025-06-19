@@ -1,5 +1,5 @@
-# pcDocTerm/graphics.py
-# This module contains the graphical user interface (GUI) for the pcDocTerm application
+# pcInfoTerm/graphics.py
+# This module contains the graphical user interface (GUI) for the pcInfoTerm application
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 
 from tkinter import *

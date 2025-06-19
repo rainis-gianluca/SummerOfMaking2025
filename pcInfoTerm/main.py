@@ -1,4 +1,4 @@
-# pcDocTerm/main.py
+# pcInfoTerm/main.py
 # This project is a terminal PC management tool
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 # Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
@@ -10,7 +10,7 @@ from pathlib import Path
 POSITIONIMAGES = str(Path(__file__).parent.absolute()) + "\\images\\"
 
 window = Tk()
-window.title("pcDocTerm - System information - Summer of Making 2025 Edition")
+window.title("pcInfoTerm - System information - Summer of Making 2025 Edition")
 window.geometry("810x400")
 window.minsize(400, 250)
 window.configure(background="black")

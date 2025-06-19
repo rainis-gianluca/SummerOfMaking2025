@@ -1,5 +1,5 @@
-# pcDocTerm/PCInfo.py
-# This module contains the backend logic for the pcDocTerm application
+# pcInfoTerm/PCInfo.py
+# This module contains the backend logic for the pcInfoTerm application
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 
 import psutil
