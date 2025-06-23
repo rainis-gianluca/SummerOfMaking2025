@@ -2,6 +2,7 @@
 # This module contains the backend logic for the pcInfoTerm application
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 
+import socket
 import psutil
 import platform
 
@@ -104,3 +105,35 @@ class PCInfo:
             }
 
             return battery_info
+    
+    def get_network_info(self): # Returns the network information (IP Address, MAC Address, Network Speed)
+        network_info = psutil.net_if_addrs()
+        interfacesInfo = []
+
+        interfaceNames = network_info.keys()
+
+        for interface in interfaceNames:
+            if network_info[interface]:
+                ip_address = "N/A"
+                mac_address = "N/A"
+                ipv6_address = "N/A"
+            
+                for setData in network_info[interface]:
+                    if socket.AF_INET == setData.family:
+                        # If the interface has an IP address
+                        ip_address = setData.address
+                    elif socket.AF_LINK == setData.family:
+                        # If the interface has a MAC address
+                        mac_address = setData.address
+                    elif socket.AF_INET6 == setData.family:
+                        # If the interface has an IPv6 address
+                        ipv6_address = setData.address
+
+                interfacesInfo.append([
+                    str(interface),
+                    "IP: "+str(ip_address),
+                    "MAC: "+str(mac_address),
+                    "IPv6: "+str(ipv6_address)
+                ])
+
+        return interfacesInfo if interfacesInfo else "No network interfaces found."

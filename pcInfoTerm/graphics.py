@@ -116,12 +116,15 @@ def updateGraphics():
                     writeLine(rewriteLine(line, strToAdd, paddingLeftChars))
 
                 elif num_lines >= MAXNUMLINES and num_chars >= MAXNUMCHARS: # Big terminal, all information
-                    if h <= 20: # Print static system information
+                    if h <= 23: # Print static system information
                         line = (printSystemStaticInfo(h, line))
 
-                        writeLine(printBarsInPile(h, data, line, paddingLeftChars=90))
+                        if h >= 13: # Print network information
+                            line = printNetInfo(h, line, 13)
+
+                        writeLine(printBarsInPile(h, data, line, paddingLeftChars=120))
                     else: # Print dynamic system information
-                        writeLine(printPileOfData(h, line, 21))
+                        writeLine(printPileOfData(h, line, 23))
 
                 elif num_lines >= MAXNUMLINES and (num_chars >= MINNUMCHARS and num_chars < MAXNUMCHARS): # Medium terminal (height), some information
                     if h < 11:
@@ -201,6 +204,8 @@ def printBarsInPile(h, data, line, firsth=2, paddingLeftChars=2):
         writeText(f"Error writing system information: {e}")
 
 def printSystemStaticInfo(h, line):
+    global pcInfo
+
     if h == 2:
         strToAdd = "Hostname: " + pcInfo.system_info["Hostname"]
         linetowrite = (rewriteLine(line, strToAdd))
@@ -230,8 +235,24 @@ def printSystemStaticInfo(h, line):
 
     return linetowrite
 
+def printNetInfo(h, line, firsth=13):
+    global pcInfo
+
+    if h >= firsth and h < firsth + pcInfo.get_network_info().__len__():
+        strToAdd = pcInfo.get_network_info()[h-firsth][0]
+        strToAdd += ": " + pcInfo.get_network_info()[h-firsth][1]
+        strToAdd += " | " + pcInfo.get_network_info()[h-firsth][2]
+        strToAdd += " | " + pcInfo.get_network_info()[h-firsth][3]
+        linetowrite = (rewriteLine(line, strToAdd))
+    else:
+        linetowrite = (line)
+    
+    return linetowrite
+
 def printPileOfData(h, line, firsth=11):
     global pcInfo
+
+    lineEndLinearData = 7
 
     if h == firsth:
         strToAdd = "Disk usage: " + pcInfo.get_current_disk_usage()
@@ -248,18 +269,21 @@ def printPileOfData(h, line, firsth=11):
     elif h == firsth+4:
         strToAdd = "Battery time: " + pcInfo.get_battery_info()["Time Left"]
         linetowrite = (rewriteLine(line, strToAdd))
-    elif h >= firsth+6 and (h-firsth-6 < pcInfo.get_current_cpu_freq().__len__() or pcInfo.get_current_disk_partitions().__len__() > h-firsth-6):
-        if pcInfo.get_current_disk_partitions() != None and pcInfo.get_current_disk_partitions().__len__() > h-firsth-6:
-            diskPart = pcInfo.get_current_disk_partitions()[h-firsth-6]
+    elif h == firsth+5:
+        strToAdd = "Battery percentage: " + pcInfo.get_battery_info()["Battery Percentage"]
+        linetowrite = (rewriteLine(line, strToAdd))
+    elif h >= firsth+lineEndLinearData and (h-firsth-lineEndLinearData < pcInfo.get_current_cpu_freq().__len__() or pcInfo.get_current_disk_partitions().__len__() > h-firsth-lineEndLinearData):
+        if pcInfo.get_current_disk_partitions() != None and pcInfo.get_current_disk_partitions().__len__() > h-firsth-lineEndLinearData:
+            diskPart = pcInfo.get_current_disk_partitions()[h-firsth-lineEndLinearData]
 
-        if pcInfo.get_current_cpu_freq() != None and pcInfo.get_current_cpu_freq().__len__() > h-firsth-6:
-            coreFreq = pcInfo.get_current_cpu_freq()[h-firsth-6]
-            strToAdd = "CPU Core " + str(h-firsth-6+1) + ": Frequency: " + coreFreq
+        if pcInfo.get_current_cpu_freq() != None and pcInfo.get_current_cpu_freq().__len__() > h-firsth-lineEndLinearData:
+            coreFreq = pcInfo.get_current_cpu_freq()[h-firsth-lineEndLinearData]
+            strToAdd = "CPU Core " + str(h-firsth-lineEndLinearData+1) + ": Frequency: " + coreFreq
             linetowrite = (rewriteLine(line, strToAdd))
         else:
             linetowrite = (line)
 
-        linetowrite = rewriteLine(linetowrite, "Disk Partition " + str(h-firsth-6+1) + ": " + (diskPart if diskPart else "N/A"), (90))
+        linetowrite = rewriteLine(linetowrite, "Disk Partition " + str(h-firsth-lineEndLinearData+1) + ": " + (diskPart if diskPart else "N/A"), (90))
     else:
         linetowrite = (line)
 
