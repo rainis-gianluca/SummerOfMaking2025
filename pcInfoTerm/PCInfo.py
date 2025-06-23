@@ -122,7 +122,9 @@ class PCInfo:
                     if socket.AF_INET == setData.family:
                         # If the interface has an IP address
                         ip_address = setData.address
-                    elif socket.AF_LINK == setData.family:
+                    elif setData.family == getattr(socket, "AF_LINK", None) or \
+                        setData.family == getattr(psutil, "AF_LINK", None) or \
+                        setData.family == 17:
                         # If the interface has a MAC address
                         mac_address = setData.address
                     elif socket.AF_INET6 == setData.family:
