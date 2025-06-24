@@ -7,7 +7,6 @@ from Packet import *
 from FramePkt import *
 from pathlib import Path
 import socket
-import sys
 import threading
 import random
 

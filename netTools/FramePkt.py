@@ -3,7 +3,6 @@
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 
 from scapy.all import Ether, ARP, srp
-from ipaddress import ip_address
 from socket import gethostbyname, gethostbyaddr
 import ipaddress
 
@@ -28,7 +27,7 @@ class FramePkt:
     @staticmethod
     def is_valid_ip(ip_str):
         try:
-            ip_address(ip_str)
+            ipaddress.ip_address(ip_str)
             return True
         except ValueError:
             return False
