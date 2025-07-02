@@ -4,7 +4,7 @@
 
 from scapy.all import Ether, ARP, srp
 from socket import gethostbyname, gethostbyaddr
-import ipaddress
+from ipaddress import ip_address, ip_network
 
 class FramePkt:
     networkIp = None  # Network IP
@@ -27,7 +27,7 @@ class FramePkt:
     @staticmethod
     def is_valid_ip(ip_str):
         try:
-            ipaddress.ip_address(ip_str)
+            ip_address(ip_str)
             return True
         except ValueError:
             return False
@@ -56,9 +56,9 @@ class FramePkt:
                 raise Exception("Error: Subnet mask is not set.")
             else:
                 subnet = sum(bin(int(i)).count('1') for i in self.subnetMask.split('.'))
-                net = ipaddress.ip_network(f"{self.networkIp}/{subnet}", strict=False)
+                net = ip_network(f"{self.networkIp}/{subnet}", strict=False)
                 
-                if ipaddress.ip_address(self.networkIp) != net.network_address:
+                if ip_address(self.networkIp) != net.network_address:
                     self.networkIp = str(net.network_address)
                 else:
                     self.networkIp = self.networkIp
@@ -78,7 +78,7 @@ class FramePkt:
         for i in (self.subnetMask).split('.'):
             subnet += bin(int(i)).count('1')
 
-        network = ipaddress.ip_network(f"{self.networkIp}/{subnet}", strict=False)
+        network = ip_network(f"{self.networkIp}/{subnet}", strict=False)
         scanned_ips = set()
 
         log_callback(f"Network: {network}")

@@ -6,7 +6,7 @@
 # Original Author: Gianluca Rainis ( __grdev on summer.hackclub.com )
 
 from graphics import createGraphics, menuGestor
-from tkinter import *
+from tkinter import Tk, Menu
 
 window = Tk()
 window.title("NetTools - Pro Network analyzer - Summer of Making 2025 Edition")

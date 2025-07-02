@@ -2,7 +2,8 @@
 # This module contains the graphical user interface (GUI) for the NetTools application
 # This project is under the GNU General Public License v3.0 (GPL-3.0).
 
-from tkinter import *
+from tkinter import Frame, Label, PhotoImage, Entry, Button, Text, Scrollbar
+from tkinter import N, S, E, W, BOTH, NORMAL, END, DISABLED
 from Packet import *
 from FramePkt import *
 from pathlib import Path
